@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="midnight">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nota — Notes &amp; Code Snippets</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<style>
+  /* ============ THEME TOKENS ============ */
+  html[data-theme="midnight"]{
+    --bg:#0b0d13; --bg-soft:#0f1117; --sidebar:#12141c; --editor:#14161f; --card:rgba(255,255,255,0.035);
+    --text:#e5e7f0; --text-dim:#868aa3; --text-faint:#565b74;
+    --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.14);
+    --accent:#6366f1; --accent-2:#818cf8; --accent-soft:rgba(99,102,241,0.15);
+    --danger:#f87171; --shadow: 0 20px 60px -20px rgba(0,0,0,0.6);
+    --syn-kw:#c792ea; --syn-str:#8fd67a; --syn-com:#5b6178; --syn-fn:#82aaff; --syn-num:#f78c6c; --syn-tag:#f07178; --syn-attr:#ffcb6b; --syn-var:#eeffff;
+  }
+  html[data-theme="nordic"]{
+    --bg:#eef3f8; --bg-soft:#e6edf5; --sidebar:#e3eaf2; --editor:#ffffff; --card:rgba(255,255,255,0.65);
+    --text:#1e293b; --text-dim:#5b6b82; --text-faint:#93a2b8;
+    --border:rgba(30,41,59,0.1); --border-strong:rgba(30,41,59,0.18);
+    --accent:#2f6fed; --accent-2:#5b8def; --accent-soft:rgba(47,111,237,0.12);
+    --danger:#e0546a; --shadow: 0 20px 50px -25px rgba(30,64,110,0.3);
+    --syn-kw:#2952cc; --syn-str:#0f8b6c; --syn-com:#93a2b8; --syn-fn:#7c3aed; --syn-num:#c2660a; --syn-tag:#c23c6f; --syn-attr:#a1650f; --syn-var:#1e293b;
+  }
+  html[data-theme="synthwave"]{
+    --bg:#120a1e; --bg-soft:#170d26; --sidebar:#190f2b; --editor:#180e28; --card:rgba(255,47,184,0.05);
+    --text:#f3e8ff; --text-dim:#a68bd6; --text-faint:#6b5590;
+    --border:rgba(255,47,184,0.2); --border-strong:rgba(255,47,184,0.35);
+    --accent:#ff2fb8; --accent-2:#00f0ff; --accent-soft:rgba(255,47,184,0.16);
+    --danger:#ff5f7e; --shadow: 0 20px 60px -15px rgba(255,47,184,0.25);
+    --syn-kw:#ff2fb8; --syn-str:#00f0ff; --syn-com:#6b5590; --syn-fn:#ffea00; --syn-num:#7cffb2; --syn-tag:#ff6ec7; --syn-attr:#00f0ff; --syn-var:#f3e8ff;
+  }
+  html[data-theme="dracula"]{
+    --bg:#20212c; --bg-soft:#25262f; --sidebar:#21222c; --editor:#282a36; --card:rgba(255,255,255,0.035);
+    --text:#f8f8f2; --text-dim:#9aa0c3; --text-faint:#6272a4;
+    --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.15);
+    --accent:#bd93f9; --accent-2:#ff79c6; --accent-soft:rgba(189,147,249,0.16);
+    --danger:#ff5555; --shadow: 0 20px 60px -20px rgba(0,0,0,0.55);
+    --syn-kw:#ff79c6; --syn-str:#f1fa8c; --syn-com:#6272a4; --syn-fn:#50fa7b; --syn-num:#bd93f9; --syn-tag:#8be9fd; --syn-attr:#50fa7b; --syn-var:#f8f8f2;
+  }
+  html[data-theme="paper"]{
+    --bg:#f6f2e8; --bg-soft:#f1ece0; --sidebar:#eee7d8; --editor:#fdfbf5; --card:rgba(255,255,255,0.55);
+    --text:#3a3226; --text-dim:#7d7261; --text-faint:#a89f8c;
+    --border:rgba(58,50,38,0.12); --border-strong:rgba(58,50,38,0.2);
+    --accent:#3f6659; --accent-2:#5c8577; --accent-soft:rgba(63,102,89,0.12);
+    --danger:#b3492f; --shadow: 0 20px 50px -25px rgba(90,75,50,0.25);
+    --syn-kw:#7a4419; --syn-str:#3f6659; --syn-com:#a89f8c; --syn-fn:#8a4b3f; --syn-num:#6b5b95; --syn-tag:#a6763f; --syn-attr:#6b5b95; --syn-var:#3a3226;
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:'Inter',sans-serif;
+    transition: background .35s ease, color .35s ease;
+    overflow:auto;
+  }
+  .font-mono-app{ font-family:'JetBrains Mono', monospace; }
+
+  ::-webkit-scrollbar{ width:8px; height:8px; }
+  ::-webkit-scrollbar-track{ background:transparent; }
+  ::-webkit-scrollbar-thumb{ background:var(--border-strong); border-radius:8px; }
+  ::-webkit-scrollbar-thumb:hover{ background:var(--accent); }
+  *{ scrollbar-width:thin; scrollbar-color:var(--border-strong) transparent; }
+
+  .glass{
+    background:var(--card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border:1px solid var(--border);
+  }
+  .bg-sidebar{ background:var(--sidebar); }
+  .bg-editor{ background:var(--editor); }
+  .bg-app{ background:var(--bg); }
+  .bg-app-soft{ background:var(--bg-soft); }
+  .text-main{ color:var(--text); }
+  .text-dim{ color:var(--text-dim); }
+  .text-faint{ color:var(--text-faint); }
+  .text-accent{ color:var(--accent); }
+  .border-app{ border-color:var(--border); }
+  .bg-accent{ background:var(--accent); }
+  .bg-accent-soft{ background:var(--accent-soft); }
+  .ring-accent{ box-shadow:0 0 0 2px var(--accent); }
+
+  .accent-gradient{
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  }
+
+  ::selection{ background:var(--accent); color:#fff; }
+
+  .transition-smooth{ transition: all .25s cubic-bezier(.4,0,.2,1); }
+
+  .note-item{ transition: all .2s ease; border-left:2px solid transparent; }
+  .note-item:hover{ background:var(--card); }
+  .note-item.active{ background:var(--accent-soft); border-left-color:var(--accent); }
+
+  .btn-icon{
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+    border-radius:10px; color:var(--text-dim); transition: all .2s ease;
+  }
+  .btn-icon:hover{ background:var(--card); color:var(--text); transform:translateY(-1px); }
+  .btn-icon:active{ transform:scale(.93); }
+
+  .btn-primary{
+    background:var(--accent); color:#fff; transition:all .2s ease;
+  }
+  .btn-primary:hover{ filter:brightness(1.1); transform:translateY(-1px); box-shadow:var(--shadow); }
+  .btn-primary:active{ transform:scale(.96); }
+
+  input, textarea{ background:transparent; color:var(--text); }
+  input::placeholder, textarea::placeholder{ color:var(--text-faint); }
+
+  /* mode toggle pill */
+  .mode-pill{ position:relative; }
+  .mode-pill button{ position:relative; z-index:2; transition: color .25s ease; }
+  .mode-pill .slider{
+    position:absolute; top:3px; bottom:3px; left:3px; width:calc(50% - 3px);
+    background:var(--accent); border-radius:9px; transition: transform .25s cubic-bezier(.4,0,.2,1);
+    z-index:1;
+  }
+
+  /* theme swatches */
+  .theme-swatch{
+    width:26px; height:26px; border-radius:50%; cursor:pointer; position:relative;
+    border:2px solid transparent; transition:all .2s ease;
+  }
+  .theme-swatch:hover{ transform:scale(1.12); }
+  .theme-swatch.active{ border-color:var(--text); transform:scale(1.12); }
+  .theme-swatch.active::after{
+    content:''; position:absolute; inset:-5px; border:1px solid var(--accent); border-radius:50%;
+  }
+
+  /* code editor */
+  .code-wrap{ position:relative; display:flex; height:100%; }
+  .line-numbers{
+    flex-shrink:0; padding:16px 10px 16px 16px; text-align:right; user-select:none;
+    color:var(--text-faint); font-size:13px; line-height:1.7; overflow:hidden;
+    background:var(--editor); border-right:1px solid var(--border);
+    white-space: pre;
+  }
+  .code-highlight-container{ position:relative; flex:1; overflow:auto; }
+  .code-highlight-container pre{
+    margin:0; padding:16px; min-height:100%;
+    font-size:13px; line-height:1.7; white-space:pre; tab-size:2;
+  }
+  .code-highlight-container code.hljs{ background:transparent !important; padding:0 !important; color:var(--text); }
+  #codeTextarea{
+    position:absolute; inset:0; width:100%; height:100%; resize:none; border:none; outline:none;
+    padding:16px; font-size:13px; line-height:1.7; white-space:pre; overflow:auto;
+    color:transparent; caret-color:var(--accent); background:transparent; z-index:2; tab-size:2;
+  }
+
+  /* hljs token coloring via css vars */
+  .hljs-keyword,.hljs-selector-tag,.hljs-literal,.hljs-section,.hljs-link{ color:var(--syn-kw); }
+  .hljs-string,.hljs-title.class_,.hljs-title.class_.inherited__{ color:var(--syn-str); }
+  .hljs-comment,.hljs-quote,.hljs-deletion{ color:var(--syn-com); font-style:italic; }
+  .hljs-title.function_,.hljs-title,.hljs-built_in{ color:var(--syn-fn); }
+  .hljs-number{ color:var(--syn-num); }
+  .hljs-tag,.hljs-name{ color:var(--syn-tag); }
+  .hljs-attr,.hljs-attribute,.hljs-symbol,.hljs-bullet{ color:var(--syn-attr); }
+  .hljs-variable,.hljs-template-variable,.hljs-type,.hljs-params{ color:var(--syn-var); }
+  .hljs-meta,.hljs-addition{ color:var(--syn-fn); }
+  .hljs-emphasis{ font-style:italic; } .hljs-strong{ font-weight:700; }
+
+  /* markdown preview */
+  .md-preview h1{ font-size:1.9rem; font-weight:800; margin:1.1rem 0 .6rem; }
+  .md-preview h2{ font-size:1.5rem; font-weight:700; margin:1rem 0 .5rem; }
+  .md-preview h3{ font-size:1.2rem; font-weight:700; margin:.9rem 0 .4rem; }
+  .md-preview h4,.md-preview h5,.md-preview h6{ font-weight:700; margin:.7rem 0 .3rem; }
+  .md-preview p{ margin:.6rem 0; line-height:1.75; color:var(--text); }
+  .md-preview strong{ font-weight:700; color:var(--text); }
+  .md-preview em{ font-style:italic; }
+  .md-preview a{ color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
+  .md-preview ul{ margin:.6rem 0; padding-left:1.4rem; list-style:disc; }
+  .md-preview li{ margin:.25rem 0; line-height:1.65; }
+  .md-preview blockquote{ border-left:3px solid var(--accent); padding:.3rem 0 .3rem 1rem; margin:.7rem 0; color:var(--text-dim); font-style:italic; }
+  .md-preview hr{ border:none; border-top:1px solid var(--border); margin:1.3rem 0; }
+  .md-preview .md-inline-code{ font-family:'JetBrains Mono',monospace; background:var(--card); border:1px solid var(--border); padding:.1rem .4rem; border-radius:5px; font-size:.85em; color:var(--accent-2); }
+  .md-preview .md-code-block{ background:var(--bg-soft); border:1px solid var(--border); border-radius:10px; padding:1rem; overflow-x:auto; margin:.8rem 0; }
+  .md-preview .md-code-block code{ font-family:'JetBrains Mono',monospace; font-size:.85rem; color:var(--text); }
+
+  /* toast */
+  #toast-container{ position:fixed; bottom:24px; right:24px; z-index:100; display:flex; flex-direction:column; gap:10px; }
+  .toast{
+    display:flex; align-items:center; gap:10px; padding:12px 18px; border-radius:12px;
+    color:#fff; font-size:13.5px; font-weight:500; box-shadow:0 15px 40px -10px rgba(0,0,0,0.4);
+    animation: toast-in .3s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes toast-in{ from{ opacity:0; transform:translateY(10px) scale(.95); } to{ opacity:1; transform:translateY(0) scale(1); } }
+  .toast.leaving{ animation: toast-out .25s ease forwards; }
+  @keyframes toast-out{ to{ opacity:0; transform:translateX(20px); } }
+
+  /* sidebar collapse */
+  #sidebar{ transition: width .3s cubic-bezier(.4,0,.2,1), opacity .3s ease, padding .3s ease; }
+  #sidebar.collapsed{ width:0 !important; opacity:0; padding-left:0; padding-right:0; border:none; overflow:hidden; }
+
+  .empty-state-icon{
+    width:76px; height:76px; border-radius:22px; display:flex; align-items:center; justify-content:center;
+    background:var(--accent-soft); color:var(--accent); font-size:28px;
+  }
+
+  .badge{
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:600; letter-spacing:.04em;
+    padding:2px 7px; border-radius:999px; text-transform:uppercase; white-space:nowrap;
+  }
+
+  .fade-in{ animation: fade-in .3s ease; }
+  @keyframes fade-in{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .spin-slow{ animation: spin 6s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  select{ -webkit-appearance:none; appearance:none; }
+
+  .confirm-del-btn{ transition: all .15s ease; }
+  .confirm-del-btn:active{ transform:scale(.9); }
+
+  textarea#plainTextarea{ font-family:'Inter',sans-serif; }
+</style>
+</head>
+<body class="h-screen w-screen flex flex-col overflow-hidden">
+
+<!-- ============ TOP BAR ============ -->
+<header class="h-14 flex items-center justify-between px-4 border-b border-app bg-app-soft shrink-0 z-20">
+  <div class="flex items-center gap-3">
+    <button id="sidebarToggle" class="btn-icon" title="Toggle sidebar">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="flex items-center gap-2 pl-1">
+      <div class="w-7 h-7 rounded-lg accent-gradient flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-feather-pointed text-white text-xs"></i>
+      </div>
+      <span class="font-bold text-[15px] tracking-tight hidden sm:block">Nota</span>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <!-- theme swatches -->
+    <div id="themeSwatches" class="flex items-center gap-1.5 pr-3 mr-1 border-r border-app"></div>
+    <button id="newNoteBtn" class="btn-primary flex items-center gap-2 px-3.5 h-9 rounded-xl text-[13px] font-semibold">
+      <i class="fa-solid fa-plus text-xs"></i><span class="hidden sm:inline">New Note</span>
+    </button>
+  </div>
+</header>
+
+<div class="flex flex-1 min-h-0">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside id="sidebar" class="w-72 shrink-0 bg-sidebar border-r border-app flex flex-col min-h-0">
+    <div class="p-3.5 border-b border-app">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-faint text-xs"></i>
+        <input id="searchInput" type="text" placeholder="Search notes..."
+          class="w-full h-9 pl-9 pr-3 rounded-xl border border-app text-[13px] focus:outline-none focus:ring-2 ring-accent transition-smooth"/>
+      </div>
+      <div class="flex items-center gap-1.5 mt-3">
+        <button data-filter="all" class="filter-btn flex-1 h-7 rounded-lg text-[11px] font-semibold transition-smooth">All</button>
+        <button data-filter="text" class="filter-btn flex-1 h-7 rounded-lg text-[11px] font-semibold transition-smooth">Text</button>
+        <button data-filter="code" class="filter-btn flex-1 h-7 rounded-lg text-[11px] font-semibold transition-smooth">Code</button>
+      </div>
+    </div>
+
+    <div id="notesList" class="flex-1 overflow-y-auto p-2 space-y-1"></div>
+
+    <div class="p-3 border-t border-app text-[11px] text-faint flex items-center justify-between font-mono-app">
+      <span id="notesCount">0 notes</span>
+      <span class="flex items-center gap-1"><i class="fa-solid fa-database text-[10px]"></i> local</span>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN EDITOR ============ -->
+  <main class="flex-1 flex flex-col min-w-0 bg-app">
+
+    <!-- Empty state -->
+    <div id="emptyState" class="hidden flex-1 flex-col items-center justify-center gap-4 text-center px-6">
+      <div class="empty-state-icon"><i class="fa-solid fa-note-sticky"></i></div>
+      <div>
+        <h2 class="text-lg font-bold mb-1">No note selected</h2>
+        <p class="text-dim text-sm max-w-xs">Create a note or pick one from the sidebar to start writing.</p>
+      </div>
+      <button onclick="createNote()" class="btn-primary px-4 h-10 rounded-xl text-sm font-semibold flex items-center gap-2">
+        <i class="fa-solid fa-plus"></i> Create your first note
+      </button>
+    </div>
+
+    <!-- Editor -->
+    <div id="editorArea" class="hidden flex-1 flex flex-col min-h-0">
+
+      <!-- editor toolbar -->
+      <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-app bg-app-soft">
+        <input id="titleInput" type="text" placeholder="Untitled note"
+          class="flex-1 min-w-[140px] text-lg font-bold focus:outline-none bg-transparent"/>
+
+        <!-- mode toggle -->
+        <div class="mode-pill glass rounded-xl p-[3px] flex text-[12px] font-semibold w-[150px] h-9 shrink-0">
+          <div class="slider" id="modeSlider"></div>
+          <button id="modeTextBtn" onclick="setMode('text')" class="flex-1 rounded-lg">Note</button>
+          <button id="modeCodeBtn" onclick="setMode('code')" class="flex-1 rounded-lg">Code</button>
+        </div>
+
+        <!-- language select -->
+        <select id="langSelect" class="hidden h-9 px-3 rounded-xl border border-app text-[12px] font-mono-app font-semibold focus:outline-none cursor-pointer bg-app-soft">
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="html">HTML/CSS</option>
+          <option value="cpp">C++</option>
+          <option value="java">Java</option>
+          <option value="rust">Rust</option>
+          <option value="sql">SQL</option>
+          <option value="json">JSON</option>
+          <option value="php">PHP</option>
+          <option value="go">Go</option>
+          <option value="bash">Bash</option>
+        </select>
+
+        <button id="previewBtn" onclick="togglePreview()" class="hidden btn-icon" title="Toggle markdown preview">
+          <i class="fa-regular fa-eye"></i>
+        </button>
+        <button id="copyBtn" onclick="copyCode()" class="hidden btn-icon" title="Copy code">
+          <i class="fa-regular fa-copy"></i>
+        </button>
+        <button id="downloadBtn" onclick="downloadNote()" class="btn-icon" title="Download">
+          <i class="fa-solid fa-download"></i>
+        </button>
+        <button id="deleteBtn" onclick="requestDeleteCurrent()" class="btn-icon hover:!text-white" title="Delete note" style="hover:background:var(--danger)">
+          <i class="fa-regular fa-trash-can"></i>
+        </button>
+      </div>
+
+      <!-- content: plain text -->
+      <div id="textModeWrap" class="flex-1 min-h-0 overflow-hidden">
+        <textarea id="plainTextarea" placeholder="Start writing..."
+          class="w-full h-full p-6 resize-none focus:outline-none text-[15px] leading-relaxed overflow-y-auto"></textarea>
+        <div id="mdPreview" class="md-preview hidden w-full h-full p-6 overflow-y-auto"></div>
+      </div>
+
+      <!-- content: code -->
+      <div id="codeModeWrap" class="hidden flex-1 min-h-0">
+        <div class="code-wrap">
+          <div id="lineNumbers" class="line-numbers font-mono-app">1</div>
+          <div class="code-highlight-container bg-editor" id="codeScrollBox">
+            <pre><code id="highlightedCode" class="hljs font-mono-app language-javascript"></code></pre>
+            <textarea id="codeTextarea" class="font-mono-app" spellcheck="false" placeholder="// start typing code..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- footer status bar -->
+      <div class="h-9 shrink-0 border-t border-app bg-app-soft flex items-center justify-between px-4 text-[11.5px] text-dim font-mono-app">
+        <div class="flex items-center gap-4">
+          <span id="wordCount">0 words</span>
+          <span id="charCount">0 chars</span>
+          <span id="lineCount" class="hidden">1 line</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <i class="fa-regular fa-clock text-[10px]"></i>
+          <span id="lastEdited">Not saved yet</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+/* ============================================================
+   NOTA — Notes & Code Snippets
+   Single-file vanilla JS notepad application
+============================================================ */
+
+const STORAGE_KEY = 'nota_notes_v1';
+const THEME_KEY = 'nota_theme_v1';
+const CURRENT_KEY = 'nota_current_v1';
+
+const THEMES = [
+  { id:'midnight',  name:'Midnight Dark',       swatch:'linear-gradient(135deg,#0f1117,#6366f1)' },
+  { id:'nordic',    name:'Nordic Ice',          swatch:'linear-gradient(135deg,#e6edf5,#2f6fed)' },
+  { id:'synthwave', name:'Cyberpunk / Synthwave',swatch:'linear-gradient(135deg,#ff2fb8,#00f0ff)' },
+  { id:'dracula',   name:'Dracula',             swatch:'linear-gradient(135deg,#282a36,#bd93f9)' },
+  { id:'paper',     name:'Minimal Paper',       swatch:'linear-gradient(135deg,#f6f2e8,#3f6659)' },
+];
+
+const LANG_META = {
+  javascript:{ label:'JavaScript', ext:'js',   hljs:'javascript' },
+  python:    { label:'Python',     ext:'py',   hljs:'python' },
+  html:      { label:'HTML/CSS',   ext:'html', hljs:'xml' },
+  cpp:       { label:'C++',        ext:'cpp',  hljs:'cpp' },
+  java:      { label:'Java',       ext:'java', hljs:'java' },
+  rust:      { label:'Rust',       ext:'rs',   hljs:'rust' },
+  sql:       { label:'SQL',        ext:'sql',  hljs:'sql' },
+  json:      { label:'JSON',       ext:'json', hljs:'json' },
+  php:       { label:'PHP',        ext:'php',  hljs:'php' },
+  go:        { label:'Go',         ext:'go',   hljs:'go' },
+  bash:      { label:'Bash',       ext:'sh',   hljs:'bash' },
+};
+
+let notes = [];
+let currentId = null;
+let currentFilter = 'all';
+let searchQuery = '';
+let previewOn = false;
+let pendingDeleteId = null;
+let saveTimer = null;
+
+/* ---------------- persistence ---------------- */
+function loadNotes(){
+  try{ notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ notes = []; }
+}
+function persistNotes(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+}
+function persistCurrent(){
+  if(currentId) localStorage.setItem(CURRENT_KEY, currentId);
+}
+
+/* ---------------- utils ---------------- */
+function uid(){ return 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function escapeHtml(str){
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function timeAgo(ts){
+  if(!ts) return 'Not saved yet';
+  const d = new Date(ts);
+  return 'Edited ' + d.toLocaleDateString(undefined,{month:'short', day:'numeric'}) + ' at ' + d.toLocaleTimeString(undefined,{hour:'2-digit', minute:'2-digit'});
+}
+function debounce(fn, ms){
+  let timer = null;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(()=>fn(...args), ms); };
+}
+
+/* ---------------- toast ---------------- */
+function showToast(message, icon='fa-check', color='var(--accent)'){
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.background = color;
+  el.innerHTML = `<i class="fa-solid ${icon}"></i><span>${escapeHtml(message)}</span>`;
+  container.appendChild(el);
+  setTimeout(()=>{
+    el.classList.add('leaving');
+    setTimeout(()=> el.remove(), 260);
+  }, 2200);
+}
+
+/* ---------------- theme ---------------- */
+function initThemeSwatches(){
+  const wrap = document.getElementById('themeSwatches');
+  wrap.innerHTML = THEMES.map(t => `
+    <div class="theme-swatch" data-theme-id="${t.id}" title="${t.name}" style="background:${t.swatch}"></div>
+  `).join('');
+  wrap.querySelectorAll('.theme-swatch').forEach(el=>{
+    el.addEventListener('click', ()=> applyTheme(el.dataset.themeId, true));
+  });
+}
+function applyTheme(themeId, showMsg){
+  document.documentElement.setAttribute('data-theme', themeId);
+  localStorage.setItem(THEME_KEY, themeId);
+  document.querySelectorAll('.theme-swatch').forEach(el=>{
+    el.classList.toggle('active', el.dataset.themeId === themeId);
+  });
+  if(showMsg){
+    const t = THEMES.find(x=>x.id===themeId);
+    showToast(t.name + ' applied', 'fa-palette');
+  }
+}
+
+/* ---------------- note CRUD ---------------- */
+function createNote(){
+  const note = {
+    id: uid(), title:'', type:'text', language:'javascript',
+    content:'', createdAt: Date.now(), updatedAt: Date.now()
+  };
+  notes.unshift(note);
+  persistNotes();
+  currentId = note.id;
+  persistCurrent();
+  renderSidebar();
+  renderEditor();
+  document.getElementById('titleInput').focus();
+}
+function getCurrentNote(){ return notes.find(n=>n.id===currentId) || null; }
+
+function selectNote(id){
+  currentId = id;
+  previewOn = false;
+  pendingDeleteId = null;
+  persistCurrent();
+  renderSidebar();
+  renderEditor();
+}
+
+function requestDeleteCurrent(){
+  if(currentId) requestDelete(currentId);
+}
+function requestDelete(id){
+  if(pendingDeleteId === id){
+    // confirmed
+    const idx = notes.findIndex(n=>n.id===id);
+    if(idx > -1) notes.splice(idx,1);
+    persistNotes();
+    if(currentId === id){
+      currentId = notes.length ? notes[0].id : null;
+      persistCurrent();
+    }
+    pendingDeleteId = null;
+    renderSidebar();
+    renderEditor();
+    showToast('Note deleted', 'fa-trash', 'var(--danger)');
+  } else {
+    pendingDeleteId = id;
+    renderSidebar();
+    setTimeout(()=>{ if(pendingDeleteId===id){ pendingDeleteId=null; renderSidebar(); } }, 3000);
+  }
+}
+
+function saveCurrentNoteField(field, value){
+  const note = getCurrentNote();
+  if(!note) return;
+  note[field] = value;
+  note.updatedAt = Date.now();
+  persistNotes();
+  updateFooter(note);
+}
+
+/* ---------------- rendering: sidebar ---------------- */
+function renderSidebar(){
+  const list = document.getElementById('notesList');
+  let filtered = notes.filter(n=>{
+    if(currentFilter !== 'all' && n.type !== currentFilter) return false;
+    if(searchQuery){
+      const q = searchQuery.toLowerCase();
+      return (n.title||'').toLowerCase().includes(q) || (n.content||'').toLowerCase().includes(q);
+    }
+    return true;
+  });
+
+  document.getElementById('notesCount').textContent = notes.length + (notes.length===1 ? ' note' : ' notes');
+
+  if(!filtered.length){
+    list.innerHTML = `<div class="text-center text-faint text-[12.5px] py-10 px-4">
+        <i class="fa-regular fa-folder-open text-xl mb-2 block"></i>
+        ${notes.length ? 'No matches found' : 'No notes yet'}
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(n=>{
+    const isActive = n.id === currentId;
+    const isPendingDel = n.id === pendingDeleteId;
+    const badgeLabel = n.type === 'code' ? (LANG_META[n.language]?.label || n.language) : 'Text Note';
+    const badgeStyle = n.type === 'code'
+      ? 'background:var(--accent-soft);color:var(--accent-2);'
+      : 'background:var(--card);color:var(--text-dim);border:1px solid var(--border);';
+    const preview = (n.content || '').replace(/\n/g,' ').trim().slice(0,64) || 'Empty note';
+
+    return `
+      <div class="note-item ${isActive?'active':''} rounded-xl px-3 py-2.5 cursor-pointer group relative fade-in" onclick="selectNote('${n.id}')">
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 mb-1">
+              <i class="fa-solid ${n.type==='code'?'fa-code':'fa-file-lines'} text-[10px] text-faint shrink-0"></i>
+              <h4 class="text-[13px] font-semibold truncate">${escapeHtml(n.title || 'Untitled note')}</h4>
+            </div>
+            <p class="text-[11.5px] text-faint truncate leading-snug">${escapeHtml(preview)}</p>
+            <div class="flex items-center gap-1.5 mt-1.5">
+              <span class="badge" style="${badgeStyle}">${escapeHtml(badgeLabel)}</span>
+              <span class="text-[10px] text-faint font-mono-app">${new Date(n.updatedAt).toLocaleDateString(undefined,{month:'short',day:'numeric'})}</span>
+            </div>
+          </div>
+          <div class="shrink-0 flex items-center">
+            ${isPendingDel ? `
+              <button onclick="event.stopPropagation(); requestDelete('${n.id}')" class="confirm-del-btn w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px]" style="background:var(--danger)" title="Confirm delete">
+                <i class="fa-solid fa-check"></i>
+              </button>
+              <button onclick="event.stopPropagation(); pendingDeleteId=null; renderSidebar();" class="confirm-del-btn w-6 h-6 rounded-lg flex items-center justify-center text-[10px] text-dim" title="Cancel">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            ` : `
+              <button onclick="event.stopPropagation(); requestDelete('${n.id}')" class="opacity-0 group-hover:opacity-100 w-6 h-6 rounded-lg flex items-center justify-center text-faint hover:!text-white transition-smooth" onmouseover="this.style.background='var(--danger)'" onmouseout="this.style.background='transparent'" title="Delete">
+                <i class="fa-regular fa-trash-can text-[11px]"></i>
+              </button>
+            `}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ---------------- rendering: editor ---------------- */
+function renderEditor(){
+  const note = getCurrentNote();
+  const empty = document.getElementById('emptyState');
+  const editor = document.getElementById('editorArea');
+
+  if(!note){
+    empty.classList.remove('hidden'); empty.classList.add('flex');
+    editor.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden'); empty.classList.remove('flex');
+  editor.classList.remove('hidden');
+
+  document.getElementById('titleInput').value = note.title;
+
+  const isCode = note.type === 'code';
+  setModeUI(isCode);
+
+  if(isCode){
+    document.getElementById('langSelect').value = note.language;
+    document.getElementById('codeTextarea').value = note.content;
+    refreshCodeHighlight();
+  } else {
+    document.getElementById('plainTextarea').value = note.content;
+    previewOn = false;
+    document.getElementById('plainTextarea').classList.remove('hidden');
+    document.getElementById('mdPreview').classList.add('hidden');
+    document.getElementById('previewBtn').querySelector('i').className = 'fa-regular fa-eye';
+  }
+
+  updateFooter(note);
+}
+
+function setModeUI(isCode){
+  document.getElementById('modeSlider').style.transform = isCode ? 'translateX(100%)' : 'translateX(0)';
+  document.getElementById('modeTextBtn').style.color = isCode ? 'var(--text-dim)' : '#fff';
+  document.getElementById('modeCodeBtn').style.color = isCode ? '#fff' : 'var(--text-dim)';
+
+  document.getElementById('textModeWrap').classList.toggle('hidden', isCode);
+  document.getElementById('codeModeWrap').classList.toggle('hidden', !isCode);
+  document.getElementById('codeModeWrap').classList.toggle('flex', isCode);
+
+  document.getElementById('langSelect').classList.toggle('hidden', !isCode);
+  document.getElementById('copyBtn').classList.toggle('hidden', !isCode);
+  document.getElementById('previewBtn').classList.toggle('hidden', isCode);
+  document.getElementById('lineCountWrap')?.classList.toggle('hidden', !isCode);
+}
+
+function setMode(mode){
+  const note = getCurrentNote();
+  if(!note) return;
+  const isCode = mode === 'code';
+  note.type = isCode ? 'code' : 'text';
+  note.updatedAt = Date.now();
+  persistNotes();
+  setModeUI(isCode);
+  if(isCode){
+    document.getElementById('langSelect').value = note.language;
+    document.getElementById('codeTextarea').value = note.content;
+    refreshCodeHighlight();
+  } else {
+    document.getElementById('plainTextarea').value = note.content;
+    previewOn = false;
+    document.getElementById('plainTextarea').classList.remove('hidden');
+    document.getElementById('mdPreview').classList.add('hidden');
+  }
+  renderSidebar();
+  updateFooter(note);
+}
+
+/* ---------------- footer / counts ---------------- */
+function updateFooter(note){
+  const content = note.content || '';
+  const words = content.trim().length ? content.trim().split(/\s+/).length : 0;
+  document.getElementById('wordCount').textContent = words + (words===1?' word':' words');
+  document.getElementById('charCount').textContent = content.length + (content.length===1?' char':' chars');
+  document.getElementById('lastEdited').textContent = timeAgo(note.updatedAt);
+  if(note.type === 'code'){
+    const lines = content.length ? content.split('\n').length : 1;
+    const lc = document.getElementById('lineCount');
+    if(lc) lc.textContent = lines + (lines===1?' line':' lines');
+  }
+}
+
+/* ---------------- code editor logic ---------------- */
+function refreshCodeHighlight(){
+  const note = getCurrentNote();
+  if(!note) return;
+  const code = document.getElementById('codeTextarea').value;
+  const lang = LANG_META[note.language]?.hljs || 'plaintext';
+  const codeEl = document.getElementById('highlightedCode');
+  let highlighted;
+  try{
+    highlighted = hljs.highlight(code, { language: lang, ignoreIllegals:true }).value;
+  }catch(e){
+    highlighted = escapeHtml(code);
+  }
+  // keep a trailing newline so last empty line renders correctly
+  codeEl.innerHTML = highlighted + '\n';
+  updateLineNumbers(code);
+}
+function updateLineNumbers(code){
+  const lines = code.length ? code.split('\n').length : 1;
+  const ln = document.getElementById('lineNumbers');
+  let out = '';
+  for(let i=1;i<=lines;i++) out += i + '\n';
+  ln.textContent = out;
+}
+function syncCodeScroll(){
+  const ta = document.getElementById('codeTextarea');
+  const pre = document.getElementById('codeScrollBox').querySelector('pre');
+  const ln = document.getElementById('lineNumbers');
+  pre.style.transform = `translate(${-ta.scrollLeft}px, ${-ta.scrollTop}px)`;
+  ln.scrollTop = ta.scrollTop;
+}
+
+/* ---------------- markdown preview ---------------- */
+function renderMarkdown(md){
+  let html = escapeHtml(md || '');
+
+  html = html.replace(/```([\s\S]*?)```/g, (m, code) => `<pre class="md-code-block"><code>${code.trim()}</code></pre>`);
+
+  html = html.replace(/^###### (.*)$/gim, '<h6>$1</h6>');
+  html = html.replace(/^##### (.*)$/gim, '<h5>$1</h5>');
+  html = html.replace(/^#### (.*)$/gim, '<h4>$1</h4>');
+  html = html.replace(/^### (.*)$/gim, '<h3>$1</h3>');
+  html = html.replace(/^## (.*)$/gim, '<h2>$1</h2>');
+  html = html.replace(/^# (.*)$/gim, '<h1>$1</h1>');
+
+  html = html.replace(/^&gt; (.*)$/gim, '<blockquote>$1</blockquote>');
+  html = html.replace(/^---$/gim, '<hr>');
+
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  html = html.replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+  html = html.replace(/^\s*[-*] (.*)$/gim, '<li>$1</li>');
+  html = html.replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g, m => '<ul>'+m+'</ul>');
+
+  html = html.split(/\n{2,}/).map(block=>{
+    const trimmed = block.trim();
+    if(!trimmed) return '';
+    if(/^<(h\d|ul|pre|blockquote|hr)/.test(trimmed)) return trimmed;
+    return '<p>' + trimmed.replace(/\n/g,'<br>') + '</p>';
+  }).join('');
+
+  return html || '<p class="text-faint">Nothing to preview yet.</p>';
+}
+
+function togglePreview(){
+  previewOn = !previewOn;
+  const ta = document.getElementById('plainTextarea');
+  const pv = document.getElementById('mdPreview');
+  const icon = document.getElementById('previewBtn').querySelector('i');
+  if(previewOn){
+    pv.innerHTML = renderMarkdown(ta.value);
+    ta.classList.add('hidden');
+    pv.classList.remove('hidden');
+    icon.className = 'fa-solid fa-pen';
+  } else {
+    ta.classList.remove('hidden');
+    pv.classList.add('hidden');
+    icon.className = 'fa-regular fa-eye';
+  }
+}
+
+/* ---------------- copy / download ---------------- */
+function copyCode(){
+  const note = getCurrentNote();
+  if(!note) return;
+  const text = document.getElementById('codeTextarea').value;
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('Copied to clipboard', 'fa-check');
+    const btn = document.getElementById('copyBtn');
+    const icon = btn.querySelector('i');
+    icon.className = 'fa-solid fa-check';
+    setTimeout(()=> icon.className = 'fa-regular fa-copy', 1200);
+  }).catch(()=> showToast('Could not copy', 'fa-triangle-exclamation', 'var(--danger)'));
+}
+
+function downloadNote(){
+  const note = getCurrentNote();
+  if(!note) return;
+  const ext = note.type === 'code' ? (LANG_META[note.language]?.ext || 'txt') : 'txt';
+  const filename = (note.title.trim() || 'untitled').replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/\s+/g,'-').toLowerCase() + '.' + ext;
+  const blob = new Blob([note.content], { type:'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Downloaded ' + filename, 'fa-download');
+}
+
+/* ---------------- event bindings ---------------- */
+const debouncedTitleSave = debounce((v)=>{ saveCurrentNoteField('title', v); renderSidebar(); }, 350);
+const debouncedContentSave = debounce((v)=>{ saveCurrentNoteField('content', v); renderSidebar(); }, 350);
+
+document.getElementById('titleInput').addEventListener('input', (e)=> debouncedTitleSave(e.target.value));
+
+document.getElementById('plainTextarea').addEventListener('input', (e)=>{
+  debouncedContentSave(e.target.value);
+  const note = getCurrentNote();
+  if(note){ note.content = e.target.value; updateFooter(note); }
+});
+
+document.getElementById('codeTextarea').addEventListener('input', (e)=>{
+  debouncedContentSave(e.target.value);
+  const note = getCurrentNote();
+  if(note){ note.content = e.target.value; updateFooter(note); }
+  refreshCodeHighlight();
+});
+document.getElementById('codeTextarea').addEventListener('scroll', syncCodeScroll);
+document.getElementById('codeTextarea').addEventListener('keydown', (e)=>{
+  if(e.key === 'Tab'){
+    e.preventDefault();
+    const ta = e.target;
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    ta.value = ta.value.slice(0,start) + '  ' + ta.value.slice(end);
+    ta.selectionStart = ta.selectionEnd = start + 2;
+    ta.dispatchEvent(new Event('input'));
+  }
+});
+
+document.getElementById('langSelect').addEventListener('change', (e)=>{
+  const note = getCurrentNote();
+  if(!note) return;
+  note.language = e.target.value;
+  note.updatedAt = Date.now();
+  persistNotes();
+  refreshCodeHighlight();
+  renderSidebar();
+  updateFooter(note);
+});
+
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  searchQuery = e.target.value;
+  renderSidebar();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    currentFilter = btn.dataset.filter;
+    document.querySelectorAll('.filter-btn').forEach(b=>{
+      b.style.background = 'transparent'; b.style.color = 'var(--text-dim)';
+    });
+    btn.style.background = 'var(--accent)'; btn.style.color = '#fff';
+    renderSidebar();
+  });
+});
+
+document.getElementById('sidebarToggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+
+document.getElementById('newNoteBtn').addEventListener('click', createNote);
+
+document.addEventListener('keydown', (e)=>{
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's'){
+    e.preventDefault();
+    const note = getCurrentNote();
+    if(note){ persistNotes(); note.updatedAt = Date.now(); updateFooter(note); renderSidebar(); showToast('Note saved', 'fa-floppy-disk'); }
+  }
+  if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n'){
+    e.preventDefault();
+    createNote();
+  }
+});
+
+/* ---------------- init ---------------- */
+function init(){
+  initThemeSwatches();
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'midnight';
+  applyTheme(savedTheme, false);
+
+  document.querySelector('.filter-btn[data-filter="all"]').style.background = 'var(--accent)';
+  document.querySelector('.filter-btn[data-filter="all"]').style.color = '#fff';
+  document.querySelectorAll('.filter-btn:not([data-filter="all"])').forEach(b=> b.style.color = 'var(--text-dim)');
+
+  loadNotes();
+
+  const savedCurrent = localStorage.getItem(CURRENT_KEY);
+  if(notes.length){
+    currentId = notes.find(n=>n.id===savedCurrent) ? savedCurrent : notes[0].id;
+  } else {
+    currentId = null;
+  }
+
+  renderSidebar();
+  renderEditor();
+}
+init();
+</script>
+</body>
+</html>
