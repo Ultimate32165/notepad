@@ -231,7 +231,7 @@
   .toast.leaving{ animation: toast-out .25s ease forwards; }
   @keyframes toast-out{ to{ opacity:0; transform:translateX(20px); } }
 
-  /* sidebar collapse (desktop) */
+  /* sidebar collapse */
   #sidebar{ transition: width .3s cubic-bezier(.4,0,.2,1), opacity .3s ease, padding .3s ease; }
   #sidebar.collapsed{ width:0 !important; opacity:0; padding-left:0; padding-right:0; border:none; overflow:hidden; }
 
@@ -272,61 +272,6 @@
   .auth-input:focus{ outline:none; box-shadow:0 0 0 2px var(--accent-soft); border-color:var(--accent); }
   .auth-label{ font-size:11px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:5px; }
   .auth-msg{ font-size:12px; border-radius:10px; padding:9px 12px; line-height:1.4; }
-
-  /* ============ MOBILE LAYOUT ============ */
-  #sidebarBackdrop{
-    display:none; position:fixed; inset:0; z-index:19; background:rgba(0,0,0,0.5);
-    opacity:0; transition:opacity .25s ease;
-  }
-  #sidebarBackdrop.show{ display:block; opacity:1; }
-
-  @media (max-width: 768px){
-    header{ padding-left:10px; padding-right:10px; }
-
-    /* sidebar becomes a slide-in drawer instead of pushing the layout */
-    #sidebar{
-      position:fixed; top:56px; bottom:0; left:0; z-index:20;
-      width:82vw; max-width:300px;
-      transform:translateX(-100%);
-      transition:transform .28s cubic-bezier(.4,0,.2,1);
-      box-shadow:var(--shadow);
-    }
-    #sidebar.mobile-open{ transform:translateX(0); }
-    /* the old desktop collapse behavior is unused on mobile */
-    #sidebar.collapsed{ width:82vw !important; max-width:300px; opacity:1; padding-left:.875rem; padding-right:.875rem; border-right:1px solid var(--border); overflow:visible; }
-
-    #newNoteBtn span{ display:none; }
-    #newNoteBtn{ padding-left:.65rem; padding-right:.65rem; }
-
-    #themeSwatches{ gap:5px; padding-right:8px; margin-right:4px; }
-    .theme-swatch{ width:20px; height:20px; }
-
-    #userEmailLabel{ max-width:80px; }
-
-    /* editor toolbar: tighten up so title + controls fit narrow screens */
-    #titleInput{ font-size:16px; min-width:100%; order:1; }
-    .mode-pill{ width:120px !important; order:2; }
-    #langSelect{ order:3; }
-    #copyBtn, #downloadBtn, #deleteBtn{ order:4; }
-
-    #richEditor{ padding:16px; font-size:14px; }
-    #formatToolbar{ padding:8px; gap:4px; }
-    .fmt-btn, .fmt-color-wrap{ width:28px; height:28px; }
-    .fmt-select{ font-size:11px; padding:0 6px; }
-
-    .line-numbers{ padding:12px 6px 12px 10px; font-size:12px; }
-    #codeTextarea, #highlightedCode{ font-size:12.5px; }
-
-    /* footer: keep it readable, drop char count first */
-    #charCount{ display:none; }
-    .h-9.shrink-0.border-t{ font-size:10.5px; padding-left:10px; padding-right:10px; }
-
-    #authCard{ padding:20px; border-radius:16px; }
-  }
-
-  @media (max-width: 380px){
-    #wordCount{ display:none; }
-  }
 </style>
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden">
@@ -365,10 +310,7 @@
   <span>Supabase isn't configured — notes are saved locally in this browser only. Add your project URL and anon key in the script to enable cloud sync across devices.</span>
 </div>
 
-<div class="flex flex-1 min-h-0 relative">
-
-  <!-- mobile-only backdrop behind the drawer -->
-  <div id="sidebarBackdrop"></div>
+<div class="flex flex-1 min-h-0">
 
   <!-- ============ SIDEBAR ============ -->
   <aside id="sidebar" class="w-72 shrink-0 bg-sidebar border-r border-app flex flex-col min-h-0">
@@ -612,15 +554,14 @@
    The anon key is safe to expose client-side as long as Row Level
    Security policies are in place on your tables.
 ------------------------------------------------------------- */
-const SUPABASE_URL = 'https://hxtiojerxxuvljsnhgpm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_rrgyJvv-sXof9gK-y83aHw_fGdjT-uz';
+const SUPABASE_URL = '_________';
+const SUPABASE_ANON_KEY = '___________';
 
 let supabase = null;
 let SUPABASE_CONFIGURED = false;
 let currentUser = null;
 let realtimeChannel = null;
 let authMode = 'signin';
-let isMobile = false;
 
 const STORAGE_KEY = 'nota_notes_v1';
 const THEME_KEY = 'nota_theme_v1';
@@ -782,7 +723,6 @@ async function createNote(){
   persistCurrent();
   renderSidebar();
   renderEditor();
-  closeMobileSidebar();
   document.getElementById('titleInput').focus();
 }
 function getCurrentNote(){ return notes.find(n=>n.id===currentId) || null; }
@@ -793,7 +733,6 @@ function selectNote(id){
   persistCurrent();
   renderSidebar();
   renderEditor();
-  closeMobileSidebar();
 }
 
 function requestDeleteCurrent(){
@@ -1161,39 +1100,25 @@ function setAuthLoading(loading){
 
 async function handleAuthSubmit(e){
   e.preventDefault();
-  if(!supabase){
-    showAuthError('Supabase is not configured yet — add your project URL and anon key in the script.');
-    return;
-  }
+  if(!supabase) return;
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
   hideAuthMessages();
   setAuthLoading(true);
   try{
     if(authMode === 'signin'){
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if(error) throw error;
-      // Don't rely solely on the onAuthStateChange listener firing in time —
-      // close the overlay immediately once we know the session is good.
-      if(data && data.session && data.session.user){
-        currentUser = data.session.user;
-        await onSignedIn();
-      }
+      // onAuthStateChange picks up the new session and closes the overlay
     } else {
       const { data, error } = await supabase.auth.signUp({ email, password });
       if(error) throw error;
-      if(data && data.session && data.session.user){
-        // email confirmation is disabled on the project, so signUp already
-        // returns an active session — sign the user straight in.
-        currentUser = data.session.user;
-        await onSignedIn();
-      } else if(data && data.user && !data.session){
+      if(data && data.user && !data.session){
         showAuthNotice('Check your email to confirm your account, then sign in.');
         setAuthTab('signin');
       }
     }
   }catch(err){
-    console.error('Auth error:', err);
     showAuthError(err && err.message ? err.message : 'Something went wrong. Please try again.');
   }finally{
     setAuthLoading(false);
@@ -1299,33 +1224,6 @@ function handleRealtimeChange(payload){
   }
 }
 
-/* ---------------- mobile sidebar drawer ---------------- */
-function checkIsMobile(){
-  isMobile = window.matchMedia('(max-width: 768px)').matches;
-  return isMobile;
-}
-function openMobileSidebar(){
-  document.getElementById('sidebar').classList.add('mobile-open');
-  document.getElementById('sidebarBackdrop').classList.add('show');
-}
-function closeMobileSidebar(){
-  if(!checkIsMobile()) return;
-  document.getElementById('sidebar').classList.remove('mobile-open');
-  document.getElementById('sidebarBackdrop').classList.remove('show');
-}
-function toggleSidebar(){
-  if(checkIsMobile()){
-    const sidebar = document.getElementById('sidebar');
-    if(sidebar.classList.contains('mobile-open')){
-      closeMobileSidebar();
-    } else {
-      openMobileSidebar();
-    }
-  } else {
-    document.getElementById('sidebar').classList.toggle('collapsed');
-  }
-}
-
 /* ---------------- event bindings ---------------- */
 const debouncedTitleSave = debounce((v)=>{ saveCurrentNoteField('title', v); renderSidebar(); }, 350);
 const debouncedContentSave = debounce((v)=>{ saveCurrentNoteField('content', v); renderSidebar(); }, 350);
@@ -1383,8 +1281,9 @@ document.querySelectorAll('.filter-btn').forEach(btn=>{
   });
 });
 
-document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
-document.getElementById('sidebarBackdrop').addEventListener('click', closeMobileSidebar);
+document.getElementById('sidebarToggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
 
 document.getElementById('newNoteBtn').addEventListener('click', createNote);
 document.getElementById('signOutBtn').addEventListener('click', signOut);
@@ -1407,15 +1306,6 @@ document.addEventListener('keydown', (e)=>{
   }
 });
 
-window.addEventListener('resize', debounce(()=>{
-  const wasMobile = isMobile;
-  checkIsMobile();
-  if(!isMobile && wasMobile){
-    document.getElementById('sidebar').classList.remove('mobile-open');
-    document.getElementById('sidebarBackdrop').classList.remove('show');
-  }
-}, 150));
-
 /* ---------------- init ---------------- */
 function startLocalMode(){
   document.getElementById('localModeBanner').classList.remove('hidden');
@@ -1431,17 +1321,13 @@ function startLocalMode(){
 }
 
 function trySetupSupabase(){
-  const url = SUPABASE_URL.trim();
-  const key = SUPABASE_ANON_KEY.trim();
-  // Treat it as configured only if both values look like real Supabase
-  // credentials rather than leftover placeholder text of any form.
   const configured = !!window.__supabaseCreateClient
-    && /^https?:\/\/.+/.test(url)
-    && key.length > 20;
+    && SUPABASE_URL.indexOf('YOUR_SUPABASE_PROJECT_URL') === -1
+    && SUPABASE_ANON_KEY.indexOf('YOUR_SUPABASE_ANON_KEY') === -1;
 
   if(configured){
     try{
-      supabase = window.__supabaseCreateClient(url, key);
+      supabase = window.__supabaseCreateClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }catch(e){
       console.error('Failed to initialize Supabase client', e);
       startLocalMode();
@@ -1454,17 +1340,12 @@ function trySetupSupabase(){
       if(session && session.user){
         currentUser = session.user;
         onSignedIn();
-      } else if(!currentUser) {
-        // avoid re-showing the auth overlay if we already signed in
-        // manually inside handleAuthSubmit and this event just lags behind
-        onSignedOut();
       } else {
         currentUser = null;
         onSignedOut();
       }
     });
   } else {
-    console.warn('Supabase not configured — falling back to local storage. Check SUPABASE_URL / SUPABASE_ANON_KEY.');
     startLocalMode();
   }
 }
@@ -1473,7 +1354,6 @@ function init(){
   initThemeSwatches();
   const savedTheme = localStorage.getItem(THEME_KEY) || 'midnight';
   applyTheme(savedTheme, false);
-  checkIsMobile();
 
   document.querySelector('.filter-btn[data-filter="all"]').style.background = 'var(--accent)';
   document.querySelector('.filter-btn[data-filter="all"]').style.color = '#fff';
