@@ -113,7 +113,6 @@
   }
   .btn-primary:hover{ filter:brightness(1.1); transform:translateY(-1px); box-shadow:var(--shadow); }
   .btn-primary:active{ transform:scale(.96); }
-  .btn-primary:disabled{ opacity:.7; cursor:not-allowed; transform:none; }
 
   input, textarea, select{ background:transparent; color:var(--text); }
   input::placeholder, textarea::placeholder{ color:var(--text-faint); }
@@ -255,23 +254,6 @@
 
   .confirm-del-btn{ transition: all .15s ease; }
   .confirm-del-btn:active{ transform:scale(.9); }
-
-  /* ============ AUTH OVERLAY ============ */
-  #authOverlay{
-    position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
-    padding:16px; background:rgba(4,5,10,0.68); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
-  }
-  #authCard{
-    width:100%; max-width:380px; background:var(--bg-soft); border:1px solid var(--border);
-    border-radius:20px; padding:28px; box-shadow:var(--shadow);
-  }
-  .auth-input{
-    width:100%; height:40px; padding:0 12px; border-radius:12px; border:1px solid var(--border);
-    font-size:13px; background:var(--bg); transition:all .2s ease;
-  }
-  .auth-input:focus{ outline:none; box-shadow:0 0 0 2px var(--accent-soft); border-color:var(--accent); }
-  .auth-label{ font-size:11px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:5px; }
-  .auth-msg{ font-size:12px; border-radius:10px; padding:9px 12px; line-height:1.4; }
 </style>
 </head>
 <body class="h-screen w-screen flex flex-col overflow-hidden">
@@ -291,11 +273,6 @@
   </div>
 
   <div class="flex items-center gap-2">
-    <!-- signed-in user chip (Supabase mode only) -->
-    <div id="userChip" class="hidden items-center gap-2 pr-3 mr-1 border-r border-app">
-      <span id="userEmailLabel" class="text-[12px] text-dim font-mono-app max-w-[140px] truncate"></span>
-      <button id="signOutBtn" class="btn-icon" title="Sign out"><i class="fa-solid fa-right-from-bracket"></i></button>
-    </div>
     <!-- theme swatches -->
     <div id="themeSwatches" class="flex items-center gap-1.5 pr-3 mr-1 border-r border-app"></div>
     <button id="newNoteBtn" class="btn-primary flex items-center gap-2 px-3.5 h-9 rounded-xl text-[13px] font-semibold">
@@ -303,12 +280,6 @@
     </button>
   </div>
 </header>
-
-<!-- local-mode notice (shown when Supabase credentials aren't set) -->
-<div id="localModeBanner" class="hidden shrink-0 px-4 py-2 text-[12px] flex items-center gap-2 border-b border-app" style="background:var(--accent-soft); color:var(--accent);">
-  <i class="fa-solid fa-triangle-exclamation shrink-0"></i>
-  <span>Supabase isn't configured — notes are saved locally in this browser only. Add your project URL and anon key in the script to enable cloud sync across devices.</span>
-</div>
 
 <div class="flex flex-1 min-h-0">
 
@@ -331,7 +302,7 @@
 
     <div class="p-3 border-t border-app text-[11px] text-faint flex items-center justify-between font-mono-app">
       <span id="notesCount">0 notes</span>
-      <span id="storageModeLabel" class="flex items-center gap-1"><i class="fa-solid fa-database text-[10px]"></i> local</span>
+      <span class="flex items-center gap-1"><i class="fa-solid fa-database text-[10px]"></i> local</span>
     </div>
   </aside>
 
@@ -493,75 +464,11 @@
 
 <div id="toast-container"></div>
 
-<!-- ============ AUTH OVERLAY (Supabase mode only) ============ -->
-<div id="authOverlay" class="hidden">
-  <div id="authCard" class="fade-in">
-    <div class="flex items-center gap-2 mb-1">
-      <div class="w-8 h-8 rounded-lg accent-gradient flex items-center justify-center shrink-0">
-        <i class="fa-solid fa-feather-pointed text-white text-xs"></i>
-      </div>
-      <span class="font-bold text-base">Nota</span>
-    </div>
-    <p class="text-dim text-[13px] mb-5">Sign in to sync your notes across devices.</p>
-
-    <div class="mode-pill glass rounded-xl p-[3px] flex text-[12px] font-semibold h-9 mb-4">
-      <div class="slider" id="authModeSlider"></div>
-      <button type="button" id="authTabSignIn" onclick="setAuthTab('signin')" class="flex-1 rounded-lg">Sign In</button>
-      <button type="button" id="authTabSignUp" onclick="setAuthTab('signup')" class="flex-1 rounded-lg">Sign Up</button>
-    </div>
-
-    <form id="authForm" onsubmit="handleAuthSubmit(event)" class="flex flex-col gap-3">
-      <div>
-        <label class="auth-label">Email</label>
-        <input id="authEmail" type="email" required autocomplete="email" placeholder="you@example.com" class="auth-input"/>
-      </div>
-      <div>
-        <label class="auth-label">Password</label>
-        <input id="authPassword" type="password" required autocomplete="current-password" minlength="6" placeholder="••••••••" class="auth-input"/>
-      </div>
-
-      <div id="authError" class="hidden auth-msg" style="background:rgba(248,113,113,0.12); color:var(--danger);"></div>
-      <div id="authNotice" class="hidden auth-msg" style="background:var(--accent-soft); color:var(--accent);"></div>
-
-      <button id="authSubmitBtn" type="submit" class="btn-primary w-full h-10 rounded-xl text-[13px] font-semibold flex items-center justify-center gap-2 mt-1">
-        <span id="authSubmitLabel">Sign In</span>
-        <i id="authSpinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
-      </button>
-    </form>
-
-    <p class="text-faint text-[11px] mt-4 text-center leading-relaxed">
-      Your notes are private and stored under your account, protected by row-level security.
-    </p>
-  </div>
-</div>
-
-<!-- Load the Supabase client library as a module, then hand it off to the classic script below -->
-<script type="module">
-  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-  window.__supabaseCreateClient = createClient;
-  window.__supabaseLibReady = true;
-  window.dispatchEvent(new Event('supabase-lib-ready'));
-</script>
-
 <script>
 /* ============================================================
    NOTA — Notes & Code Snippets
-   Single-file vanilla JS notepad application, backed by Supabase
+   Single-file vanilla JS notepad application
 ============================================================ */
-
-/* ---------------- Supabase config ----------------
-   Replace these with your own project's values (Project Settings > API).
-   The anon key is safe to expose client-side as long as Row Level
-   Security policies are in place on your tables.
-------------------------------------------------------------- */
-const SUPABASE_URL = 'https://hxtiojerxxuvljsnhgpm.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_rrgyJvv-sXof9gK-y83aHw_fGdjT-uz';
-
-let supabase = null;
-let SUPABASE_CONFIGURED = false;
-let currentUser = null;
-let realtimeChannel = null;
-let authMode = 'signin';
 
 const STORAGE_KEY = 'nota_notes_v1';
 const THEME_KEY = 'nota_theme_v1';
@@ -596,7 +503,7 @@ let searchQuery = '';
 let pendingDeleteId = null;
 let savedRange = null;
 
-/* ---------------- local persistence (fallback mode) ---------------- */
+/* ---------------- persistence ---------------- */
 function loadNotes(){
   try{ notes = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ notes = []; }
 }
@@ -671,54 +578,14 @@ function applyTheme(themeId, showMsg){
   }
 }
 
-/* =========================================================
-   DATA LAYER
-   Every note-mutating action goes through these functions so
-   the rest of the app doesn't care whether it's talking to
-   Supabase or localStorage.
-========================================================= */
-function mapRowToNote(row){
-  return {
-    id: row.id,
-    title: row.title || '',
-    type: row.type || 'text',
-    language: row.language || 'javascript',
-    content: row.content || '',
-    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
-    updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
+/* ---------------- note CRUD ---------------- */
+function createNote(){
+  const note = {
+    id: uid(), title:'', type:'text', language:'javascript',
+    content:'', createdAt: Date.now(), updatedAt: Date.now()
   };
-}
-
-async function persistNoteChange(note, fields){
-  if(SUPABASE_CONFIGURED && supabase && currentUser){
-    const payload = { ...fields, updated_at: new Date(note.updatedAt).toISOString() };
-    const { error } = await supabase.from('notes').update(payload).eq('id', note.id);
-    if(error){
-      console.error(error);
-      showToast('Sync failed — check your connection', 'fa-triangle-exclamation', 'var(--danger)');
-    }
-  } else {
-    persistNotes();
-  }
-}
-
-async function createNote(){
-  let note;
-  if(SUPABASE_CONFIGURED && supabase && currentUser){
-    const { data, error } = await supabase.from('notes').insert({
-      title:'', type:'text', language:'javascript', content:'', user_id: currentUser.id
-    }).select().single();
-    if(error){
-      console.error(error);
-      showToast('Could not create note', 'fa-triangle-exclamation', 'var(--danger)');
-      return;
-    }
-    note = mapRowToNote(data);
-  } else {
-    note = { id: uid(), title:'', type:'text', language:'javascript', content:'', createdAt: Date.now(), updatedAt: Date.now() };
-  }
   notes.unshift(note);
-  if(!SUPABASE_CONFIGURED) persistNotes();
+  persistNotes();
   currentId = note.id;
   persistCurrent();
   renderSidebar();
@@ -738,22 +605,12 @@ function selectNote(id){
 function requestDeleteCurrent(){
   if(currentId) requestDelete(currentId);
 }
-async function requestDelete(id){
+function requestDelete(id){
   if(pendingDeleteId === id){
     // confirmed
-    if(SUPABASE_CONFIGURED && supabase && currentUser){
-      const { error } = await supabase.from('notes').delete().eq('id', id);
-      if(error){
-        console.error(error);
-        showToast('Could not delete note', 'fa-triangle-exclamation', 'var(--danger)');
-        pendingDeleteId = null;
-        renderSidebar();
-        return;
-      }
-    }
     const idx = notes.findIndex(n=>n.id===id);
     if(idx > -1) notes.splice(idx,1);
-    if(!SUPABASE_CONFIGURED) persistNotes();
+    persistNotes();
     if(currentId === id){
       currentId = notes.length ? notes[0].id : null;
       persistCurrent();
@@ -769,12 +626,12 @@ async function requestDelete(id){
   }
 }
 
-async function saveCurrentNoteField(field, value){
+function saveCurrentNoteField(field, value){
   const note = getCurrentNote();
   if(!note) return;
   note[field] = value;
   note.updatedAt = Date.now();
-  await persistNoteChange(note, { [field]: value });
+  persistNotes();
   updateFooter(note);
 }
 
@@ -888,13 +745,13 @@ function setModeUI(isCode){
   document.getElementById('copyBtn').classList.toggle('hidden', !isCode);
 }
 
-async function setMode(mode){
+function setMode(mode){
   const note = getCurrentNote();
   if(!note) return;
   const isCode = mode === 'code';
   note.type = isCode ? 'code' : 'text';
   note.updatedAt = Date.now();
-  await persistNoteChange(note, { type: note.type });
+  persistNotes();
   setModeUI(isCode);
   if(isCode){
     document.getElementById('langSelect').value = note.language;
@@ -1064,166 +921,6 @@ function downloadNote(){
   showToast('Downloaded ' + filename, 'fa-download');
 }
 
-/* =========================================================
-   AUTH — Supabase email/password
-========================================================= */
-function setAuthTab(mode){
-  authMode = mode;
-  const slider = document.getElementById('authModeSlider');
-  slider.style.transform = mode === 'signup' ? 'translateX(100%)' : 'translateX(0)';
-  document.getElementById('authTabSignIn').style.color = mode === 'signin' ? '#fff' : 'var(--text-dim)';
-  document.getElementById('authTabSignUp').style.color = mode === 'signup' ? '#fff' : 'var(--text-dim)';
-  document.getElementById('authSubmitLabel').textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
-  document.getElementById('authPassword').setAttribute('autocomplete', mode === 'signin' ? 'current-password' : 'new-password');
-  hideAuthMessages();
-}
-function hideAuthMessages(){
-  document.getElementById('authError').classList.add('hidden');
-  document.getElementById('authNotice').classList.add('hidden');
-}
-function showAuthError(msg){
-  const el = document.getElementById('authError');
-  el.textContent = msg;
-  el.classList.remove('hidden');
-  document.getElementById('authNotice').classList.add('hidden');
-}
-function showAuthNotice(msg){
-  const el = document.getElementById('authNotice');
-  el.textContent = msg;
-  el.classList.remove('hidden');
-  document.getElementById('authError').classList.add('hidden');
-}
-function setAuthLoading(loading){
-  document.getElementById('authSubmitBtn').disabled = loading;
-  document.getElementById('authSpinner').classList.toggle('hidden', !loading);
-}
-
-async function handleAuthSubmit(e){
-  e.preventDefault();
-  if(!supabase) return;
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
-  hideAuthMessages();
-  setAuthLoading(true);
-  try{
-    if(authMode === 'signin'){
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if(error) throw error;
-      // onAuthStateChange picks up the new session and closes the overlay
-    } else {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if(error) throw error;
-      if(data && data.user && !data.session){
-        showAuthNotice('Check your email to confirm your account, then sign in.');
-        setAuthTab('signin');
-      }
-    }
-  }catch(err){
-    showAuthError(err && err.message ? err.message : 'Something went wrong. Please try again.');
-  }finally{
-    setAuthLoading(false);
-  }
-}
-
-async function signOut(){
-  if(!supabase) return;
-  await supabase.auth.signOut();
-}
-
-async function onSignedIn(){
-  document.getElementById('authOverlay').classList.add('hidden');
-  document.getElementById('userChip').classList.remove('hidden');
-  document.getElementById('userChip').classList.add('flex');
-  document.getElementById('userEmailLabel').textContent = (currentUser && currentUser.email) || '';
-  document.getElementById('authForm').reset();
-  await loadNotesFromSupabase();
-  subscribeRealtime();
-}
-
-function onSignedOut(){
-  if(realtimeChannel){
-    supabase.removeChannel(realtimeChannel);
-    realtimeChannel = null;
-  }
-  notes = [];
-  currentId = null;
-  renderSidebar();
-  renderEditor();
-  document.getElementById('userChip').classList.add('hidden');
-  document.getElementById('userChip').classList.remove('flex');
-  document.getElementById('authOverlay').classList.remove('hidden');
-  setAuthTab('signin');
-}
-
-/* =========================================================
-   SUPABASE DATA LOADING + REALTIME
-========================================================= */
-async function loadNotesFromSupabase(){
-  const { data, error } = await supabase
-    .from('notes')
-    .select('*')
-    .order('updated_at', { ascending:false });
-  if(error){
-    console.error(error);
-    showToast('Could not load notes', 'fa-triangle-exclamation', 'var(--danger)');
-    return;
-  }
-  notes = (data || []).map(mapRowToNote);
-  const savedCurrent = localStorage.getItem(CURRENT_KEY);
-  currentId = notes.find(n=>n.id===savedCurrent) ? savedCurrent : (notes.length ? notes[0].id : null);
-  renderSidebar();
-  renderEditor();
-}
-
-function subscribeRealtime(){
-  if(!SUPABASE_CONFIGURED || !supabase || !currentUser) return;
-  if(realtimeChannel){
-    supabase.removeChannel(realtimeChannel);
-    realtimeChannel = null;
-  }
-  realtimeChannel = supabase
-    .channel('notes-changes-' + currentUser.id)
-    .on('postgres_changes',
-      { event:'*', schema:'public', table:'notes', filter:`user_id=eq.${currentUser.id}` },
-      handleRealtimeChange
-    )
-    .subscribe();
-}
-
-function handleRealtimeChange(payload){
-  if(payload.eventType === 'INSERT'){
-    const note = mapRowToNote(payload.new);
-    if(!notes.find(n=>n.id===note.id)){
-      notes.unshift(note);
-      renderSidebar();
-    }
-  } else if(payload.eventType === 'UPDATE'){
-    const note = mapRowToNote(payload.new);
-    const idx = notes.findIndex(n=>n.id===note.id);
-    if(idx > -1){
-      notes[idx] = note;
-    } else {
-      notes.unshift(note);
-    }
-    if(note.id === currentId){
-      const activeEl = document.activeElement;
-      const isEditingThis = activeEl && ['titleInput','richEditor','codeTextarea'].includes(activeEl.id);
-      if(!isEditingThis) renderEditor();
-    }
-    renderSidebar();
-  } else if(payload.eventType === 'DELETE'){
-    const idx = notes.findIndex(n=>n.id===payload.old.id);
-    if(idx > -1){
-      notes.splice(idx,1);
-      if(currentId === payload.old.id){
-        currentId = notes.length ? notes[0].id : null;
-        renderEditor();
-      }
-      renderSidebar();
-    }
-  }
-}
-
 /* ---------------- event bindings ---------------- */
 const debouncedTitleSave = debounce((v)=>{ saveCurrentNoteField('title', v); renderSidebar(); }, 350);
 const debouncedContentSave = debounce((v)=>{ saveCurrentNoteField('content', v); renderSidebar(); }, 350);
@@ -1254,12 +951,12 @@ document.getElementById('codeTextarea').addEventListener('keydown', (e)=>{
   }
 });
 
-document.getElementById('langSelect').addEventListener('change', async (e)=>{
+document.getElementById('langSelect').addEventListener('change', (e)=>{
   const note = getCurrentNote();
   if(!note) return;
   note.language = e.target.value;
   note.updatedAt = Date.now();
-  await persistNoteChange(note, { language: note.language });
+  persistNotes();
   refreshCodeHighlight();
   renderSidebar();
   updateFooter(note);
@@ -1286,19 +983,12 @@ document.getElementById('sidebarToggle').addEventListener('click', ()=>{
 });
 
 document.getElementById('newNoteBtn').addEventListener('click', createNote);
-document.getElementById('signOutBtn').addEventListener('click', signOut);
 
 document.addEventListener('keydown', (e)=>{
   if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's'){
     e.preventDefault();
     const note = getCurrentNote();
-    if(note){
-      note.updatedAt = Date.now();
-      persistNoteChange(note, { title: note.title, content: note.content, type: note.type, language: note.language });
-      updateFooter(note);
-      renderSidebar();
-      showToast('Note saved', 'fa-floppy-disk');
-    }
+    if(note){ persistNotes(); note.updatedAt = Date.now(); updateFooter(note); renderSidebar(); showToast('Note saved', 'fa-floppy-disk'); }
   }
   if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n'){
     e.preventDefault();
@@ -1307,49 +997,6 @@ document.addEventListener('keydown', (e)=>{
 });
 
 /* ---------------- init ---------------- */
-function startLocalMode(){
-  document.getElementById('localModeBanner').classList.remove('hidden');
-  loadNotes();
-  const savedCurrent = localStorage.getItem(CURRENT_KEY);
-  if(notes.length){
-    currentId = notes.find(n=>n.id===savedCurrent) ? savedCurrent : notes[0].id;
-  } else {
-    currentId = null;
-  }
-  renderSidebar();
-  renderEditor();
-}
-
-function trySetupSupabase(){
-  const configured = !!window.__supabaseCreateClient
-    && SUPABASE_URL.indexOf('YOUR_SUPABASE_PROJECT_URL') === -1
-    && SUPABASE_ANON_KEY.indexOf('YOUR_SUPABASE_ANON_KEY') === -1;
-
-  if(configured){
-    try{
-      supabase = window.__supabaseCreateClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }catch(e){
-      console.error('Failed to initialize Supabase client', e);
-      startLocalMode();
-      return;
-    }
-    SUPABASE_CONFIGURED = true;
-    document.getElementById('storageModeLabel').innerHTML = '<i class="fa-solid fa-cloud text-[10px]"></i> cloud';
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      if(session && session.user){
-        currentUser = session.user;
-        onSignedIn();
-      } else {
-        currentUser = null;
-        onSignedOut();
-      }
-    });
-  } else {
-    startLocalMode();
-  }
-}
-
 function init(){
   initThemeSwatches();
   const savedTheme = localStorage.getItem(THEME_KEY) || 'midnight';
@@ -1359,16 +1006,17 @@ function init(){
   document.querySelector('.filter-btn[data-filter="all"]').style.color = '#fff';
   document.querySelectorAll('.filter-btn:not([data-filter="all"])').forEach(b=> b.style.color = 'var(--text-dim)');
 
-  setAuthTab('signin');
+  loadNotes();
 
-  if(window.__supabaseLibReady){
-    trySetupSupabase();
+  const savedCurrent = localStorage.getItem(CURRENT_KEY);
+  if(notes.length){
+    currentId = notes.find(n=>n.id===savedCurrent) ? savedCurrent : notes[0].id;
   } else {
-    window.addEventListener('supabase-lib-ready', trySetupSupabase, { once:true });
-    // if the module script fails to load at all (e.g. no network access),
-    // don't leave the user stuck — fall back to local mode after a short wait.
-    setTimeout(()=>{ if(!SUPABASE_CONFIGURED && !notes.length && !currentUser) trySetupSupabase(); }, 2500);
+    currentId = null;
   }
+
+  renderSidebar();
+  renderEditor();
 }
 init();
 </script>
