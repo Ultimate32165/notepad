@@ -262,8 +262,8 @@
     padding:16px; background:rgba(4,5,10,0.68); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
   }
   #authOverlay.hidden{
-    display:none !important;
-  }
+  display:none !important;
+}
   #authCard{
     width:100%; max-width:380px; background:var(--bg-soft); border:1px solid var(--border);
     border-radius:20px; padding:28px; box-shadow:var(--shadow);
@@ -275,19 +275,6 @@
   .auth-input:focus{ outline:none; box-shadow:0 0 0 2px var(--accent-soft); border-color:var(--accent); }
   .auth-label{ font-size:11px; font-weight:600; color:var(--text-dim); display:block; margin-bottom:5px; }
   .auth-msg{ font-size:12px; border-radius:10px; padding:9px 12px; line-height:1.4; }
-
-  /* ============ SHARE ============ */
-  #shareBtn.is-public{ color:var(--accent); background:var(--accent-soft); }
-  #shareBanner{
-    display:none; align-items:center; gap:8px; padding:8px 16px; font-size:12px;
-    background:var(--accent-soft); color:var(--accent); border-bottom:1px solid var(--border);
-  }
-  #shareBanner.show{ display:flex; }
-  #viewerBadge{
-    position:fixed; top:14px; right:14px; z-index:60; display:flex; align-items:center; gap:8px;
-    padding:8px 14px; border-radius:999px; font-size:12px; font-weight:600;
-    background:var(--bg-soft); border:1px solid var(--border); box-shadow:var(--shadow);
-  }
 
   /* ============ MOBILE LAYOUT ============ */
   #sidebarBackdrop{
@@ -323,7 +310,7 @@
     #titleInput{ font-size:16px; min-width:100%; order:1; }
     .mode-pill{ width:120px !important; order:2; }
     #langSelect{ order:3; }
-    #copyBtn, #shareBtn, #downloadBtn, #deleteBtn{ order:4; }
+    #copyBtn, #downloadBtn, #deleteBtn{ order:4; }
 
     #richEditor{ padding:16px; font-size:14px; }
     #formatToolbar{ padding:8px; gap:4px; }
@@ -338,7 +325,6 @@
     .h-9.shrink-0.border-t{ font-size:10.5px; padding-left:10px; padding-right:10px; }
 
     #authCard{ padding:20px; border-radius:16px; }
-    #viewerBadge{ top:auto; bottom:14px; right:14px; }
   }
 
   @media (max-width: 380px){
@@ -428,12 +414,6 @@
     <!-- Editor -->
     <div id="editorArea" class="hidden flex-1 flex flex-col min-h-0">
 
-      <!-- share status banner -->
-      <div id="shareBanner">
-        <i class="fa-solid fa-globe"></i>
-        <span>This note is public — anyone with the link can view it (read-only).</span>
-      </div>
-
       <!-- editor toolbar -->
       <div class="flex flex-wrap items-center gap-3 px-4 py-3 border-b border-app bg-app-soft">
         <input id="titleInput" type="text" placeholder="Untitled note"
@@ -463,9 +443,6 @@
 
         <button id="copyBtn" onclick="copyCode()" class="hidden btn-icon" title="Copy code">
           <i class="fa-regular fa-copy"></i>
-        </button>
-        <button id="shareBtn" onclick="toggleShare(event)" class="btn-icon" title="Share (view-only link)">
-          <i class="fa-solid fa-share-nodes"></i>
         </button>
         <button id="downloadBtn" onclick="downloadNote()" class="btn-icon" title="Download">
           <i class="fa-solid fa-download"></i>
@@ -619,48 +596,6 @@
   </div>
 </div>
 
-<!-- ============ READ-ONLY SHARED VIEWER ============ -->
-<div id="viewerOverlay" class="hidden fixed inset-0 z-40 bg-app flex flex-col">
-  <div id="viewerBadge">
-    <i class="fa-solid fa-eye"></i>
-    <span>View only</span>
-  </div>
-  <header class="h-14 flex items-center justify-between px-4 border-b border-app bg-app-soft shrink-0">
-    <div class="flex items-center gap-2">
-      <div class="w-7 h-7 rounded-lg accent-gradient flex items-center justify-center shrink-0">
-        <i class="fa-solid fa-feather-pointed text-white text-xs"></i>
-      </div>
-      <span class="font-bold text-[15px] tracking-tight">Nota</span>
-    </div>
-    <a id="viewerOpenAppLink" href="#" class="btn-primary flex items-center gap-2 px-3.5 h-9 rounded-xl text-[13px] font-semibold no-underline">
-      Open Nota <i class="fa-solid fa-arrow-right text-xs"></i>
-    </a>
-  </header>
-  <div class="flex-1 overflow-y-auto">
-    <div class="max-w-3xl mx-auto px-6 py-10 w-full" id="viewerBody">
-      <div id="viewerLoading" class="text-dim text-sm">Loading note…</div>
-      <div id="viewerContent" class="hidden">
-        <div class="flex items-center gap-2 mb-4">
-          <span id="viewerBadgeType" class="badge"></span>
-        </div>
-        <h1 id="viewerTitle" class="text-2xl font-bold mb-6"></h1>
-        <div id="viewerTextBody" class="hidden text-[15px] leading-relaxed"></div>
-        <div id="viewerCodeBody" class="hidden code-wrap rounded-xl overflow-hidden border border-app" style="height:70vh;">
-          <div id="viewerLineNumbers" class="line-numbers font-mono-app"></div>
-          <div class="code-highlight-container bg-editor">
-            <pre style="margin:0;"><code id="viewerHighlightedCode" class="hljs font-mono-app"></code></pre>
-          </div>
-        </div>
-      </div>
-      <div id="viewerError" class="hidden text-center py-16">
-        <div class="empty-state-icon mx-auto mb-4"><i class="fa-solid fa-lock"></i></div>
-        <h2 class="text-lg font-bold mb-1">This note isn't available</h2>
-        <p class="text-dim text-sm">It may have been unshared, deleted, or the link is incorrect.</p>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Load the Supabase client library as a module, then hand it off to the classic script below -->
 <script type="module">
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -811,7 +746,6 @@ function mapRowToNote(row){
     type: row.type || 'text',
     language: row.language || 'javascript',
     content: row.content || '',
-    isPublic: !!row.is_public,
     createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
     updatedAt: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
   };
@@ -843,7 +777,7 @@ async function createNote(){
     }
     note = mapRowToNote(data);
   } else {
-    note = { id: uid(), title:'', type:'text', language:'javascript', content:'', isPublic:false, createdAt: Date.now(), updatedAt: Date.now() };
+    note = { id: uid(), title:'', type:'text', language:'javascript', content:'', createdAt: Date.now(), updatedAt: Date.now() };
   }
   notes.unshift(note);
   if(!SUPABASE_CONFIGURED) persistNotes();
@@ -908,75 +842,6 @@ async function saveCurrentNoteField(field, value){
   updateFooter(note);
 }
 
-/* =========================================================
-   SHARING (view-only public links)
-========================================================= */
-function buildShareLink(noteId){
-  const url = new URL(window.location.href);
-  url.search = '';
-  url.hash = '';
-  url.searchParams.set('view', noteId);
-  return url.toString();
-}
-async function copyToClipboard(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    return true;
-  }catch(e){
-    return false;
-  }
-}
-function updateShareButton(note){
-  const btn = document.getElementById('shareBtn');
-  const banner = document.getElementById('shareBanner');
-  if(!note){ btn.classList.remove('is-public'); banner.classList.remove('show'); return; }
-  btn.classList.toggle('is-public', !!note.isPublic);
-  btn.title = note.isPublic
-    ? 'Public — click to copy link, shift+click to unshare'
-    : 'Share (view-only link)';
-  banner.classList.toggle('show', !!note.isPublic);
-}
-async function toggleShare(evt){
-  const note = getCurrentNote();
-  if(!note) return;
-
-  if(!SUPABASE_CONFIGURED || !supabase || !currentUser){
-    showToast('Turn on cloud sync to share notes', 'fa-triangle-exclamation', 'var(--danger)');
-    return;
-  }
-
-  // already public + shift-click => unshare
-  if(note.isPublic && evt && evt.shiftKey){
-    const { error } = await supabase.from('notes').update({ is_public:false }).eq('id', note.id);
-    if(error){ console.error(error); showToast('Could not update sharing', 'fa-triangle-exclamation', 'var(--danger)'); return; }
-    note.isPublic = false;
-    updateShareButton(note);
-    showToast('Note is private again', 'fa-lock');
-    return;
-  }
-
-  // already public + normal click => just copy the link again
-  if(note.isPublic){
-    const link = buildShareLink(note.id);
-    const ok = await copyToClipboard(link);
-    showToast(ok ? 'Share link copied' : link, 'fa-link');
-    return;
-  }
-
-  // not public yet => make it public, then copy the link
-  const { error } = await supabase.from('notes').update({ is_public:true }).eq('id', note.id);
-  if(error){
-    console.error(error);
-    showToast('Could not enable sharing', 'fa-triangle-exclamation', 'var(--danger)');
-    return;
-  }
-  note.isPublic = true;
-  updateShareButton(note);
-  const link = buildShareLink(note.id);
-  const ok = await copyToClipboard(link);
-  showToast(ok ? 'Link copied — view only' : link, 'fa-link');
-}
-
 /* ---------------- rendering: sidebar ---------------- */
 function renderSidebar(){
   const list = document.getElementById('notesList');
@@ -1017,7 +882,6 @@ function renderSidebar(){
             <div class="flex items-center gap-1.5 mb-1">
               <i class="fa-solid ${n.type==='code'?'fa-code':'fa-file-lines'} text-[10px] text-faint shrink-0"></i>
               <h4 class="text-[13px] font-semibold truncate">${escapeHtml(n.title || 'Untitled note')}</h4>
-              ${n.isPublic ? '<i class="fa-solid fa-globe text-[10px] shrink-0" style="color:var(--accent)" title="Public"></i>' : ''}
             </div>
             <p class="text-[11.5px] text-faint truncate leading-snug">${escapeHtml(preview)}</p>
             <div class="flex items-center gap-1.5 mt-1.5">
@@ -1053,7 +917,6 @@ function renderEditor(){
   if(!note){
     empty.classList.remove('hidden'); empty.classList.add('flex');
     editor.classList.add('hidden');
-    updateShareButton(null);
     return;
   }
   empty.classList.add('hidden'); empty.classList.remove('flex');
@@ -1072,7 +935,6 @@ function renderEditor(){
     document.getElementById('richEditor').innerHTML = note.content || '';
   }
 
-  updateShareButton(note);
   updateFooter(note);
 }
 
@@ -1425,7 +1287,6 @@ function handleRealtimeChange(payload){
       const activeEl = document.activeElement;
       const isEditingThis = activeEl && ['titleInput','richEditor','codeTextarea'].includes(activeEl.id);
       if(!isEditingThis) renderEditor();
-      else updateShareButton(note);
     }
     renderSidebar();
   } else if(payload.eventType === 'DELETE'){
@@ -1438,64 +1299,6 @@ function handleRealtimeChange(payload){
       }
       renderSidebar();
     }
-  }
-}
-
-/* =========================================================
-   READ-ONLY SHARED VIEWER
-   If the URL has ?view=<note_id>, skip the whole app (no auth
-   required) and render that single note read-only, provided
-   its is_public flag is true (enforced by an RLS policy).
-========================================================= */
-async function initViewerMode(viewId){
-  document.getElementById('viewerOverlay').classList.remove('hidden');
-  document.getElementById('viewerOpenAppLink').href = window.location.origin + window.location.pathname;
-
-  if(!SUPABASE_CONFIGURED || !supabase){
-    document.getElementById('viewerLoading').classList.add('hidden');
-    document.getElementById('viewerError').classList.remove('hidden');
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from('notes')
-    .select('*')
-    .eq('id', viewId)
-    .eq('is_public', true)
-    .maybeSingle();
-
-  document.getElementById('viewerLoading').classList.add('hidden');
-
-  if(error || !data){
-    if(error) console.error(error);
-    document.getElementById('viewerError').classList.remove('hidden');
-    return;
-  }
-
-  const note = mapRowToNote(data);
-  document.getElementById('viewerContent').classList.remove('hidden');
-  document.getElementById('viewerTitle').textContent = note.title || 'Untitled note';
-  document.title = (note.title || 'Untitled note') + ' — Nota';
-
-  const badgeType = document.getElementById('viewerBadgeType');
-  if(note.type === 'code'){
-    badgeType.textContent = LANG_META[note.language]?.label || note.language;
-    badgeType.style.cssText = 'background:var(--accent-soft);color:var(--accent-2);';
-    document.getElementById('viewerCodeBody').classList.remove('hidden');
-    document.getElementById('viewerCodeBody').classList.add('flex');
-    const lang = LANG_META[note.language]?.hljs || 'plaintext';
-    let highlighted;
-    try{ highlighted = hljs.highlight(note.content || '', { language: lang, ignoreIllegals:true }).value; }
-    catch(e){ highlighted = escapeHtml(note.content || ''); }
-    document.getElementById('viewerHighlightedCode').innerHTML = highlighted;
-    const lines = (note.content||'').length ? note.content.split('\n').length : 1;
-    let ln = ''; for(let i=1;i<=lines;i++) ln += i + '\n';
-    document.getElementById('viewerLineNumbers').textContent = ln;
-  } else {
-    badgeType.textContent = 'Text Note';
-    badgeType.style.cssText = 'background:var(--card);color:var(--text-dim);border:1px solid var(--border);';
-    document.getElementById('viewerTextBody').classList.remove('hidden');
-    document.getElementById('viewerTextBody').innerHTML = note.content || '<p class="text-faint">Empty note.</p>';
   }
 }
 
@@ -1630,7 +1433,7 @@ function startLocalMode(){
   renderEditor();
 }
 
-function trySetupSupabase(viewId){
+function trySetupSupabase(){
   const url = SUPABASE_URL.trim();
   const key = SUPABASE_ANON_KEY.trim();
   // Treat it as configured only if both values look like real Supabase
@@ -1644,17 +1447,11 @@ function trySetupSupabase(viewId){
       supabase = window.__supabaseCreateClient(url, key);
     }catch(e){
       console.error('Failed to initialize Supabase client', e);
-      if(viewId){ initViewerMode(viewId); } else { startLocalMode(); }
+      startLocalMode();
       return;
     }
     SUPABASE_CONFIGURED = true;
     document.getElementById('storageModeLabel').innerHTML = '<i class="fa-solid fa-cloud text-[10px]"></i> cloud';
-
-    if(viewId){
-      // shared read-only view: never show the auth overlay or app chrome
-      initViewerMode(viewId);
-      return;
-    }
 
     supabase.auth.onAuthStateChange((event, session) => {
       if(session && session.user){
@@ -1671,14 +1468,11 @@ function trySetupSupabase(viewId){
     });
   } else {
     console.warn('Supabase not configured — falling back to local storage. Check SUPABASE_URL / SUPABASE_ANON_KEY.');
-    if(viewId){ initViewerMode(viewId); } else { startLocalMode(); }
+    startLocalMode();
   }
 }
 
 function init(){
-  const urlParams = new URLSearchParams(window.location.search);
-  const viewId = urlParams.get('view');
-
   initThemeSwatches();
   const savedTheme = localStorage.getItem(THEME_KEY) || 'midnight';
   applyTheme(savedTheme, false);
@@ -1691,12 +1485,12 @@ function init(){
   setAuthTab('signin');
 
   if(window.__supabaseLibReady){
-    trySetupSupabase(viewId);
+    trySetupSupabase();
   } else {
-    window.addEventListener('supabase-lib-ready', ()=> trySetupSupabase(viewId), { once:true });
+    window.addEventListener('supabase-lib-ready', trySetupSupabase, { once:true });
     // if the module script fails to load at all (e.g. no network access),
     // don't leave the user stuck — fall back to local mode after a short wait.
-    setTimeout(()=>{ if(!SUPABASE_CONFIGURED && !notes.length && !currentUser) trySetupSupabase(viewId); }, 2500);
+    setTimeout(()=>{ if(!SUPABASE_CONFIGURED && !notes.length && !currentUser) trySetupSupabase(); }, 2500);
   }
 }
 init();
