@@ -1405,6 +1405,7 @@ async function loadNotesFromSupabase(){
   const { data, error } = await supabase
     .from('notes')
     .select('*')
+    .eq('user_id', currentUser.id)
     .order('updated_at', { ascending:false });
   if(error){
     console.error(error);
